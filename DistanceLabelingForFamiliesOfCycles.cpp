@@ -1,7 +1,13 @@
+// OS: Ubuntu 22.04.5 LTS
+// We used for compile:
+// clang++ -std=c++20 -O3 DistanceLabelingForFamiliesOfCycles.cpp -o DistanceLabelingForFamiliesOfCycles.exe
+// For running:
+// ./DistanceLabelingForFamiliesOfCycles.exe
 #include <iostream>
 #include <ctime>
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 
 using namespace std;
 
@@ -44,7 +50,7 @@ int N, ans;
 
 int zeroes[maxN];
 
-int index[maxN][maxM];
+int position[maxN][maxM];
 int cycles[maxN][maxN];
 int cyclesAns[maxN][maxN];
 int dist[maxM][maxM];
@@ -64,7 +70,7 @@ void setCycle(int lay, int i, int value) {
 	int change = value;
 	if (value == -1)
 		change = cycles[lay][i];
-	index[lay][change] = i;
+	position[lay][change] = i;
 	use[lay] ^= ((bigMaskType)1 << (bigMaskType)change);
 	filled[lay] ^= (maskType)1 << ((maskType)i);
 	cycles[lay][i] = value;
@@ -133,7 +139,7 @@ int addEdges(int* cycle, int i, int n) {
 	getVector(newNumbers, mask);
 	for (int t = 0; t < newNumbers.n; t++) {
 		int b = newNumbers[t];
-		int j = index[lay][b];
+		int j = position[lay][b];
 		if (dist[a][b] == -1) {
 			changes.push_back(make_pair(a, b));
 			setDist(a, b, preDist[n - 1][i][j]);
@@ -265,13 +271,13 @@ void printTime()
 }
 
 maskType MASK;
-long long tenbillions = 1e9;
+const long long PRINT_INTENSITY = 1e10;
 
 
 void solve(int n, int num, int m) {
 	int lay = n - 1;
 	STEP++;
-	if (STEP % tenbillions == 0)
+	if (STEP % PRINT_INTENSITY == 0)
 	{
 		printTime();
 		cout << STEP << endl;
@@ -320,7 +326,7 @@ void solve(int n, int num, int m) {
 	Vector<int, block>& v = lists[mask % SIZE];
 	for (int t = 0; t < v.n; t++) {
 		int i = v[t];
-		p &= preAdj[n - 1][index[lay][i]][dist[num][i] - 1];
+		p &= preAdj[n - 1][position[lay][i]][dist[num][i] - 1];
 		if (p == 0)
 			break;
 	}
@@ -329,7 +335,7 @@ void solve(int n, int num, int m) {
 		Vector<int, block>& u = lists[mask / SIZE];
 		for (int t = 0; t < u.n; t++) {
 			int i = u[t] + block;
-			p &= preAdj[n - 1][index[lay][i]][dist[num][i] - 1];
+			p &= preAdj[n - 1][position[lay][i]][dist[num][i] - 1];
 			if (p == 0)
 				break;
 		}
@@ -360,7 +366,7 @@ void solve(int n, int num, int m) {
 void init() {
 	memset(dist, -1, sizeof dist);
 	memset(cycles, -1, sizeof cycles);
-	memset(index, -1, sizeof index);
+	memset(position, -1, sizeof position);
 	for (int n = 1; n <= N; n++)
 		for (int one = 0; one < N; one++)
 			for (int dist = 1; dist <= N; dist++)
@@ -377,7 +383,7 @@ void init() {
 				}
 			}
 		}
-	for (int i = 0; i < SIZE; i++)
+	for (int i = 0; i < (int)SIZE; i++)
 	{
 		for (int j = 0; j < block; j++)
 		{
@@ -391,7 +397,6 @@ void init() {
 
 
 bool calc[1 << ((maxN + 1) / 2) ];
-int num[maxN];
 
 maskType revert(maskType m)
 {
@@ -408,10 +413,10 @@ maskType revert(maskType m)
 
 int main()
 {
-	FILE* stream;
-	freopen_s(&stream, "output.txt", "w", stdout);
-	maskType start;
+	maskType start;	
+	cout << "Please enter N and start Mask. The answer will be in output.txt" << endl;
 	cin >> N >> start;
+	freopen("output.txt", "w", stdout);
 	t0 = time(0);
 	init();
 	ans = borders[N] + 1;
@@ -439,7 +444,7 @@ int main()
 		{
 			continue;
 		}
-//		cout << MASK << endl;
+		cout << MASK << endl;
 		calc[MASK] = true;
 		int cur = N;
 		for (int i = 0; i < N - 1; i++)
